@@ -1,0 +1,64 @@
+--------------------------------GROUP BY---------------------------------------
+SET SCHEMA DB2MOVIES;
+
+SELECT STUDIONAME, SUM(LENGTH) AS SUM_LEN
+FROM MOVIE
+GROUP BY STUDIONAME
+HAVING SUM(LENGTH) > 200;
+
+-- 1. За таблицата Movies, да се изведе номер на продуцент,
+-- брой на филми за този продуцент.
+SELECT PRODUCERC#, COUNT(*) AS CNT_MOVIES
+FROM MOVIE
+GROUP BY PRODUCERC#;
+
+-- 2. Като задача 1, но искаме и име на продуцент и networth.
+SELECT PRODUCERC#, NAME, NETWORTH, COUNT (*) AS CNT_MOVIES
+FROM MOVIE, MOVIEEXEC
+WHERE PRODUCERC# = CERT#
+GROUP BY PRODUCERC#, NAME, NETWORTH
+HAVING NETWORTH > 100000000;
+
+-- 3. Заявка, която ни връща име на актьор,
+-- рождена дата и броя на филмите, в които е участвал
+SELECT STARNAME, BIRTHDATE, COUNT (*) AS CNT_MOV
+FROM STARSIN, MOVIESTAR
+WHERE NAME = STARNAME
+GROUP BY STARNAME, BIRTHDATE
+ORDER BY CNT_MOV DESC;
+
+-- 4. Заявка, която ни връща имената на актьорите, рождена дата и броя на филмите,
+-- в които са участвали за тези актьори с най-много филми.
+SELECT STARNAME, BIRTHDATE, COUNT (*) AS CNT_MOVS
+FROM STARSIN, MOVIESTAR
+WHERE NAME = STARNAME
+GROUP BY STARNAME, BIRTHDATE
+HAVING COUNT(*) >= ALL(SELECT COUNT(*) FROM STARSIN
+                       GROUP BY STARNAME);
+
+-- 5. За Movies, име на продуцент, име на студио
+-- и брой на филми за всики продуцент, според студиото.
+SELECT NAME, STUDIONAME, COUNT (*) AS CNT_MOVIES
+FROM MOVIEEXEC, MOVIE
+WHERE PRODUCERC# = CERT#
+GROUP BY PRODUCERC#, NAME, STUDIONAME;
+
+-- 6. Име на филм и име на най-възрастния актьор участвал във филма
+SELECT T1.* FROM
+(SELECT MOVIETITLE, MOVIEYEAR, STARNAME, ABS(YEAR(BIRTHDATE) - MOVIEYEAR) AS AGE
+    FROM STARSIN, MOVIESTAR
+    WHERE STARNAME = NAME) T1,
+(SELECT MOVIETITLE, MOVIEYEAR, MAX(ABS(YEAR(BIRTHDATE) - MOVIEYEAR)) AS AGE
+    FROM STARSIN, MOVIESTAR
+    WHERE STARNAME = NAME
+    GROUP BY MOVIETITLE, MOVIEYEAR) T2
+WHERE T1.MOVIETITLE = T2.MOVIETITLE
+AND T1.MOVIEYEAR = T2.MOVIEYEAR
+AND T1.AGE = T2.AGE;
+
+-- 7. Намира най-възрастният актьор участвал в филм
+SELECT MOVIETITLE, MOVIEYEAR, NAME, ABS(YEAR(BIRTHDATE) - MOVIEYEAR) AS AGE
+FROM MOVIESTAR, STARSIN
+WHERE STARNAME = NAME
+AND ABS(YEAR(BIRTHDATE) - MOVIEYEAR) = (SELECT MAX(ABS(YEAR(BIRTHDATE) - MOVIEYEAR))
+                                        FROM MOVIESTAR);
