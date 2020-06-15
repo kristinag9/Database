@@ -7,11 +7,10 @@ public class Rooms {
         Connection myConnection;
         Statement myStatement;
         ResultSet myResultSet;
-        String query = "SELECT * FROM FN71840.AUDIT_ROOM";
+        String query = "SELECT * FROM SCHEMA.AUDIT_ROOM";
 
         try {
-            myConnection = DriverManager.getConnection("jdbc:db2://62.44.108.24:50000/SAMPLE",
-                    "db2admin", "db2admin");
+            myConnection = DriverManager.getConnection("someUrl", "someUsername", "somePassword");
             myStatement = myConnection.createStatement();
             myResultSet = myStatement.executeQuery(query);
             while(myResultSet.next()) {
